@@ -4,7 +4,7 @@ import warnings
 from typing import Any, Dict, List, Optional
 import os
 
-from haystack.agents import Agent
+from haystack.agents import Agent, Tool
 from haystack.agents.agent_step import AgentStep
 from packaging.version import parse
 
@@ -28,10 +28,15 @@ class ArgillaCallback():
             api_key: Optional[str] = None,
             ) -> None:
         
-        # Add event handlers to Agent
+        # Add event handlers to Agent and ToolsManager
         agent.callback_manager.on_agent_start += self.on_agent_start
+        agent.callback_manager.on_agent_step += self.on_agent_step
         agent.callback_manager.on_agent_final_answer += self.on_agent_final_answer
         agent.callback_manager.on_agent_finish += self.on_agent_finish
+        
+        agent.tm.callback_manager.on_tool_start += self.on_tool_start
+        agent.tm.callback_manager.on_tool_finish += self.on_tool_finish
+        agent.tm.callback_manager.on_tool_error += self.on_tool_error
 
         # Import Argilla 
         try:
@@ -48,7 +53,7 @@ class ArgillaCallback():
         if parse(self.ARGILLA_VERSION) < parse("1.20.0"):
             raise ImportError(
                 f"The installed `argilla` version is {self.ARGILLA_VERSION} but "
-                "`ArgillaCallbackHandler` requires at least version 1.21.0. Please "
+                "`ArgillaCallbackHandler` requires at least version 1.20.0. Please "
                 "upgrade `argilla` with `pip install --upgrade argilla`."
             )
         
@@ -110,7 +115,7 @@ class ArgillaCallback():
             ) from e
         
         self.field_names = [field.name for field in self.dataset.fields]
-
+        self.metadata = {}
 
         ## TODO: Add checks to confirm dataset exists
         ## TODO: Add checks to confirm the question types are appropriate for the task
@@ -120,36 +125,43 @@ class ArgillaCallback():
         ## TODO: Add checks if there are suggestions
         ## TODO: Add checks for workspace validity
 
-    def on_agent_start(self, name: str, query: str, params: Dict[str, Any]):
+    def on_agent_start(self, name: str, query: str, params: Dict[str, Any], **kwargs: Any) -> None:
+        """Do nothing when the agent starts"""
         pass
 
-    def on_agent_step(self, agent_step: AgentStep):
-        pass
-
-    def on_agent_finish(self, agent_step: AgentStep):
-        print("Records have been updated to Argilla")
-        
+    def on_agent_step(self, agent_step: AgentStep, **kwargs: Any) -> None:
+        """Update the metadata for the record with the tool output at agent step"""
+        self.metadata["tool_output"] = agent_step.prompt_node_response
     
-    def on_agent_final_answer(self, final_answer):
+    def on_agent_finish(self, agent_step: AgentStep, **kwargs: Any) -> None:
+        """Print message when the agent finishes"""
+        print("Records have been updated to Argilla")
+    
+    def on_agent_final_answer(self, final_answer, **kwargs: Any) -> None:
+        """Add the final answer and the query to the record and submit it to Argilla"""
         query = final_answer["query"]
         answer = final_answer["answers"][0].answer
         self.dataset.add_records(
-        records=[
-            {
-                "fields": {
-                    self.field_names[0]: query, 
-                    self.field_names[1]: answer
+            records=[
+                {
+                    "fields": {
+                        self.field_names[0]: query, 
+                        self.field_names[1]: answer
+                        },
+                    "metadata": self.metadata
                     },
-                }
-            ]
-        )
+                ]
+            )
 
-    def on_tool_start(self):
+    def on_tool_start(self, tool_input: str, tool: Tool):
+        """Do nothing when the tool starts"""
         pass
 
-    def on_tool_finish(self):
-        pass
+    def on_tool_finish(self, tool_result: str, tool_name: Optional[str] = None, tool_input: Optional[str] = None, **kwargs: Any) -> None:
+        """Update the metadata with the tool name"""
+        self.metadata["tool_name"] = tool_name
 
-    def on_tool_error(self):
+    def on_tool_error(self, exception: Exception, tool: Tool, **kwargs: Any) -> None:
+        """Do nothing when the tool errors out"""
         pass
         
