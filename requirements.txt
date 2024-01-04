@@ -1,0 +1,4 @@
+argilla==1.20.0
+farm-haystack==3.2.1
+packaging==23.2
+typing-extensions==4.3.0

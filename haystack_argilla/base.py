@@ -1,20 +1,20 @@
 #TODO: add __init__.py file
-
+#TODO: Review requirements.txt
 import warnings
 from typing import Any, Dict, List, Optional
 import os
+from argilla._constants import DEFAULT_API_KEY, DEFAULT_API_URL
+import logging
 
 from haystack.agents import Agent, Tool
 from haystack.agents.agent_step import AgentStep
 from packaging.version import parse
 
-print("Importing base")
+_LOGGER = logging.getLogger(__name__)
+_LOGGER.setLevel(logging.INFO)
 
 class ArgillaCallback():
     """base"""
-
-    DEFAULT_API_URL: str = "http://localhost:6900"
-    DEFAULT_API_KEY: str = "argilla.apikey"
 
     REPO_URL: str = "https://github.com/argilla-io/argilla"
     ISSUES_URL: str = f"{REPO_URL}/issues"
@@ -63,23 +63,21 @@ class ArgillaCallback():
             warnings.warn(
                 (
                     "Since `api_url` is None, and the env var `ARGILLA_API_URL` is not"
-                    f" set, it will default to `{self.DEFAULT_API_URL}`, which is the"
+                    f" set, it will default to `{DEFAULT_API_URL}`, which is the"
                     " default API URL in Argilla Quickstart."
                 ),
             )
-            api_url = self.DEFAULT_API_URL
+            api_url = DEFAULT_API_URL
 
         if api_key is None and os.getenv("ARGILLA_API_KEY") is None:
             warnings.warn(
                 (
                     "Since `api_key` is None, and the env var `ARGILLA_API_KEY` is not"
-                    f" set, it will default to `{self.DEFAULT_API_KEY}`, which is the"
+                    f" set, it will default to `{DEFAULT_API_KEY}`, which is the"
                     " default API key in Argilla Quickstart."
                 ),
             )
-            api_key = self.DEFAULT_API_KEY
-
-        ## TODO: Add checks for Server versions
+            api_key = DEFAULT_API_KEY
     
         # Connect to Argilla with the provided credentials, if applicable
         try:
@@ -101,29 +99,39 @@ class ArgillaCallback():
         
         # Retrieve the `FeedbackDataset` from Argilla
         try:
-            self.dataset = rg.FeedbackDataset.from_argilla(
-                name=self.dataset_name,
-                workspace=self.workspace_name,
+            if self.dataset_name in [ds.name for ds in rg.FeedbackDataset.list()]:
+                self.dataset = rg.FeedbackDataset.from_argilla(
+                    name=self.dataset_name,
+                    workspace=self.workspace_name,
+                )
+            else:
+                dataset = rg.FeedbackDataset(
+                    fields=[
+                        rg.TextField(name="prompt"),
+                        rg.TextField(name="response"),
+                    ],
+                    questions=[rg.RatingQuestion(name="rating", values=[1, 2, 3, 4, 5])
+                    ],
+                )
+                self.dataset = dataset.push_to_argilla(self.dataset_name)
+                warnings.warn(
+                (
+                    f"No dataset with the name {self.dataset_name} was found in workspace "
+                    f"{self.workspace_name}. A new dataset with the name {self.dataset_name} "
+                    "has been created with the question fields `prompt` and `response`"
+                    "and the rating question `rating` with values 1-5."
+                ),
             )
             ## TODO: Should it be with or without records (as in Langchain integration)?
         except Exception as e:
             raise FileNotFoundError(
-                f"`FeedbackDataset` retrieval from Argilla failed with exception `{e}`."
-                f"\nPlease check that the dataset with name={self.dataset_name} in the"
-                f" workspace={self.workspace_name} exists in advance. If the problem persists"
-                f" please report it to {self.ISSUES_URL} as an `integration` issue."
+                f"`FeedbackDataset` retrieval and creation both failed with exception `{e}`."
+                f" If the problem persists please report it to {self.ISSUES_URL} "
+                f"as an `integration` issue."
             ) from e
         
         self.field_names = [field.name for field in self.dataset.fields]
         self.metadata = {}
-
-        ## TODO: Add checks to confirm dataset exists
-        ## TODO: Add checks to confirm the question types are appropriate for the task
-        ## TODO: Add checks to confirm the field types are appropriate for the task
-        ## TODO: Add checks if dataset is empty
-        ## TODO: Add checks if records have responses and/or are submitted
-        ## TODO: Add checks if there are suggestions
-        ## TODO: Add checks for workspace validity
 
     def on_agent_start(self, name: str, query: str, params: Dict[str, Any], **kwargs: Any) -> None:
         """Do nothing when the agent starts"""
@@ -134,8 +142,7 @@ class ArgillaCallback():
         self.metadata["tool_output"] = agent_step.prompt_node_response
     
     def on_agent_finish(self, agent_step: AgentStep, **kwargs: Any) -> None:
-        """Print message when the agent finishes"""
-        print("Records have been updated to Argilla")
+        """Do nothing when the agent finishes"""
     
     def on_agent_final_answer(self, final_answer, **kwargs: Any) -> None:
         """Add the final answer and the query to the record and submit it to Argilla"""
@@ -152,6 +159,7 @@ class ArgillaCallback():
                     },
                 ]
             )
+        _LOGGER.info("Records have been updated to Argilla")
 
     def on_tool_start(self, tool_input: str, tool: Tool):
         """Do nothing when the tool starts"""
@@ -164,4 +172,3 @@ class ArgillaCallback():
     def on_tool_error(self, exception: Exception, tool: Tool, **kwargs: Any) -> None:
         """Do nothing when the tool errors out"""
         pass
-        
