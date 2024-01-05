@@ -14,19 +14,70 @@ _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.INFO)
 
 class ArgillaCallback():
-    """base"""
+    """Callback manager that logs into Argilla
+
+    Args:
+        agent: The Haystack Agent that will be used to run the pipeline
+        dataset_name: The name of the dataset in Argilla. If the dataset does not exist,
+            a new one will be created.
+        workspace_name: The name of the workspace in Argilla. Defaults to 'None', in which
+            case the default workspace will be used.
+        api_url: The URL of the Argilla API. Defaults to 'None', in which case the default
+            API URL will be used.
+        api_key: The API key of the Argilla API. Defaults to 'None', in which case the default
+            API key will be used.
+
+    Raises:
+        ImportError: If the `argilla` Python package is not installed or the one installed is not compatible
+        ConnectionError: If the connection to Argilla fails
+        FileNotFoundError: If the retrieval and creation of the `FeedbackDataset` fails
+    
+    Examples:                                                 #TODO: Correct this example if needed
+        >>> from argilla_haystack.base import ArgillaCallback
+        >>> from haystack.agents.base import Agent, ToolsManager
+        >>> ... # Other imports
+        >>> ... # Define your Haystack pipelines and nodes for agent
+        >>> conversational_agent = Agent(
+                agent_prompt_node,
+                prompt_template=agent_prompt,
+                prompt_parameters_resolver=resolver_function,
+                memory=memory,
+                tools_manager=ToolsManager([search_tool]),
+            )
+        >>> ArgillaCallback(agent=conversational_agent, dataset_name=dataset_id, api_url=api_url, api_key=api_key)
+        >>> conversational_agent.run(query="What is another name of Artemis?")
+        "Diana"
+    """
 
     REPO_URL: str = "https://github.com/argilla-io/argilla"
     ISSUES_URL: str = f"{REPO_URL}/issues"
 
     def __init__(
-            self,
-            agent: Agent,
-            dataset_name: str,
-            workspace_name: Optional[str] = None,
-            api_url: Optional[str] = None,
-            api_key: Optional[str] = None,
-            ) -> None:
+        self,
+        agent: Agent,
+        dataset_name: str,
+        workspace_name: Optional[str] = None,
+        api_url: Optional[str] = None,
+        api_key: Optional[str] = None,
+    ) -> None:
+        """Initialize the ArgillaCallback
+
+        Args:
+            agent: The Haystack Agent that will be used to run the pipeline
+            dataset_name: The name of the dataset in Argilla. If the dataset does not exist,
+                a new one will be created.
+            workspace_name: The name of the workspace in Argilla. Defaults to 'None', in which
+                case the default workspace will be used.
+            api_url: The URL of the Argilla API. Defaults to 'None', in which case the default
+                API URL will be used.
+            api_key: The API key of the Argilla API. Defaults to 'None', in which case the default
+                API key will be used.
+
+        Raises:
+            ImportError: If the `argilla` Python package is not installed or the one installed is not compatible
+            ConnectionError: If the connection to Argilla fails
+            FileNotFoundError: If the retrieval and creation of the `FeedbackDataset` fails
+        """
         
         # Add event handlers to Agent and ToolsManager
         agent.callback_manager.on_agent_start += self.on_agent_start
