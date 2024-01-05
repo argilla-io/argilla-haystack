@@ -155,6 +155,7 @@ class ArgillaCallback():
                     name=self.dataset_name,
                     workspace=self.workspace_name,
                 )
+            # If the dataset does not exist, create a new one with the given name
             else:
                 dataset = rg.FeedbackDataset(
                     fields=[
