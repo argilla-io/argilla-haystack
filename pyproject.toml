@@ -1,0 +1,34 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "argilla-haystack"
+description = "Argilla-Haystack Integration"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = ["annotation", "llm", "monitoring"]
+authors = [{ name = "Argilla", email = "admin@argilla.io" }]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "argilla >= 1.18.0",
+    "farm-haystack >= 1.23.0",
+    "packaging >= 23.2",
+    "typing-extensions >= 4.3.0"
+]
+dynamic = ["version"]
+
+[project.urls]
+Issues = "https://github.com/argilla-io/argilla-haystack/issues"
+Source = "https://github.com/argilla-io/argilla-haystack"
+
+[tool.hatch.version]
+path = "haystack_argilla/__init__.py"
+
