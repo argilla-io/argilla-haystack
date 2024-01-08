@@ -101,7 +101,7 @@ class ArgillaCallback():
             )
 
         ## Check whether the Argilla version is compatible
-        if parse(self.ARGILLA_VERSION) < parse("1.20.0"):
+        if parse(self.ARGILLA_VERSION) < parse("1.18.0"):
             raise ImportError(
                 f"The installed `argilla` version is {self.ARGILLA_VERSION} but "
                 "`ArgillaCallbackHandler` requires at least version 1.20.0. Please "
@@ -147,7 +147,7 @@ class ArgillaCallback():
         # Set the Argilla variables
         self.dataset_name = dataset_name
         self.workspace_name = workspace_name or rg.get_workspace()
-        
+
         # Retrieve the `FeedbackDataset` from Argilla
         try:
             if self.dataset_name in [ds.name for ds in rg.FeedbackDataset.list()]:
@@ -182,6 +182,15 @@ class ArgillaCallback():
                 f"as an `integration` issue."
             ) from e
         
+        supported_fields = ["prompt", "response"]
+        if supported_fields != [field.name for field in self.dataset.fields]:
+            raise ValueError(
+                f"`FeedbackDataset` with name={self.dataset_name} in the workspace="
+                f"{self.workspace_name} had fields that are not supported yet for the"
+                f"`haystack` integration. Supported fields are: {supported_fields},"
+                f" and the current `FeedbackDataset` fields are {[field.name for field in self.dataset.fields]}."
+            )
+        
         self.field_names = [field.name for field in self.dataset.fields]
         self.metadata = {}
 
@@ -204,8 +213,8 @@ class ArgillaCallback():
             records=[
                 {
                     "fields": {
-                        self.field_names[0]: query, 
-                        self.field_names[1]: answer
+                        "prompt": query, 
+                        "response": answer
                         },
                     "metadata": self.metadata
                     },
