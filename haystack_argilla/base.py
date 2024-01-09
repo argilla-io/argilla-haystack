@@ -89,6 +89,9 @@ class ArgillaCallback():
         agent.tm.callback_manager.on_tool_finish += self.on_tool_finish
         agent.tm.callback_manager.on_tool_error += self.on_tool_error
 
+        # Get tool names from ToolsManager
+        self.tool_names = agent.tm.get_tool_names().split(", ")
+
         # Import Argilla 
         try:
             import argilla as rg
@@ -104,7 +107,7 @@ class ArgillaCallback():
         if parse(self.ARGILLA_VERSION) < parse("1.18.0"):
             raise ImportError(
                 f"The installed `argilla` version is {self.ARGILLA_VERSION} but "
-                "`ArgillaCallbackHandler` requires at least version 1.20.0. Please "
+                "`ArgillaCallbackHandler` requires at least version 1.18.0. Please "
                 "upgrade `argilla` with `pip install --upgrade argilla`."
             )
         
@@ -162,19 +165,39 @@ class ArgillaCallback():
                         rg.TextField(name="prompt"),
                         rg.TextField(name="response"),
                     ],
-                    questions=[rg.RatingQuestion(name="rating", values=[1, 2, 3, 4, 5])
+                    questions=[
+                        rg.RatingQuestion(
+                            name="response-rating",
+                            title="Rating",
+                            description="How would you rate the quality of the response?",
+                            values=[1, 2, 3, 4, 5],
+                            required=True,
+                        ),
+                        rg.TextQuestion(
+                            name="response-feedback",
+                            title="Feedback",
+                            description="What feedback do you have for the response?",
+                            required=False,
+                        ),
                     ],
+                        guidelines="You're asked to rate the quality of the response and provide feedback.",
+                        allow_extra_metadata=True,
                 )
+                dataset.add_metadata_property(rg.TermsMetadataProperty(
+                                                    name="tool_name",
+                                                    title="Tool Name",
+                                                    values=self.tool_names))
                 self.dataset = dataset.push_to_argilla(self.dataset_name)
                 warnings.warn(
                 (
                     f"No dataset with the name {self.dataset_name} was found in workspace "
                     f"{self.workspace_name}. A new dataset with the name {self.dataset_name} "
                     "has been created with the question fields `prompt` and `response`"
-                    "and the rating question `rating` with values 1-5."
+                    "and the rating question `response-rating` with values 1-5 and text question"
+                    "named `response-feedback`."
                 ),
             )
-            ## TODO: Should it be with or without records (as in Langchain integration)?
+
         except Exception as e:
             raise FileNotFoundError(
                 f"`FeedbackDataset` retrieval and creation both failed with exception `{e}`."
