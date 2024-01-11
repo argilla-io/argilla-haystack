@@ -59,7 +59,7 @@ class ArgillaCallback:
                 memory=memory,
                 tools_manager=ToolsManager([search_tool]),
             )
-        >>> ArgillaCallback(agent=conversational_agent, dataset_name=dataset_id, api_url=api_url, api_key=api_key)
+        >>> ArgillaCallback(agent=conversational_agent, dataset_name=dataset_name, api_url=api_url, api_key=api_key)
         >>> conversational_agent.run(query="What is another name of Artemis?")
         "Diana"
     """
