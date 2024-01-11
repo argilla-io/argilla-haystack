@@ -1,4 +1,4 @@
-sources = src/distilabel tests examples
+sources = src/argilla_haystack tests examples
 
 .PHONY: format
 format:
