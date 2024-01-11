@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO: add __init__.py file
-# TODO: Review requirements.txt
 import logging
 import os
 import warnings
@@ -26,7 +24,6 @@ from packaging.version import parse
 
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.INFO)
-
 
 class ArgillaCallback:
     """Callback manager that logs into Argilla
@@ -47,19 +44,16 @@ class ArgillaCallback:
         ConnectionError: If the connection to Argilla fails
         FileNotFoundError: If the retrieval and creation of the `FeedbackDataset` fails
 
-    Examples:                                                 #TODO: Correct this example if needed
-        >>> from argilla_haystack.base import ArgillaCallback
-        >>> from haystack.agents.base import Agent, ToolsManager
-        >>> ... # Other imports
-        >>> ... # Define your Haystack pipelines and nodes for agent
-        >>> conversational_agent = Agent(
-                agent_prompt_node,
-                prompt_template=agent_prompt,
-                prompt_parameters_resolver=resolver_function,
-                memory=memory,
-                tools_manager=ToolsManager([search_tool]),
+    Example:
+        >>> from haystack.nodes import PromptNode
+        >>> from haystack.agents.memory import ConversationSummaryMemory
+        >>> from haystack.agents.conversational import ConversationalAgent
+        >>> prompt_node = PromptNode(
+                model_name_or_path="gpt-3.5-turbo-instruct", api_key=openai_api_key, max_length=256, stop_words=["Human"]
             )
-        >>> ArgillaCallback(agent=conversational_agent, dataset_name=dataset_name, api_url=api_url, api_key=api_key)
+        >>> summary_memory = ConversationSummaryMemory(prompt_node)
+        >>> conversational_agent = ConversationalAgent(prompt_node=prompt_node, memory=summary_memory)
+        >>> ArgillaCallback(agent=conversational_agent, dataset_name="conversational_ai", api_url="http://localhost:6900/", api_key=argilla_api_key)
         >>> conversational_agent.run(query="What is another name of Artemis?")
         "Diana"
     """
@@ -110,7 +104,6 @@ class ArgillaCallback:
         # Import Argilla
         try:
             import argilla as rg
-
             self.ARGILLA_VERSION = rg.__version__
 
         except ImportError as e:
@@ -119,7 +112,7 @@ class ArgillaCallback:
                 "Python package installed. Please install it with `pip install argilla`"
             ) from e
 
-        ## Check whether the Argilla version is compatible
+        # Check whether the Argilla version is compatible
         if parse(self.ARGILLA_VERSION) < parse("1.18.0"):
             raise ImportError(
                 f"The installed `argilla` version is {self.ARGILLA_VERSION} but "
@@ -127,7 +120,6 @@ class ArgillaCallback:
                 "upgrade `argilla` with `pip install --upgrade argilla`."
             )
 
-        # API_URL and API_KEY
         # Show a warning message if Argilla will assume the default values will be used
         if api_url is None and os.getenv("ARGILLA_API_URL") is None:
             warnings.warn(
