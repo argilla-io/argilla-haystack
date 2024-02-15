@@ -14,7 +14,7 @@ With Argilla's Python SDK and adaptable UI, you can create human and model-in-th
 You first need to install argilla and argilla-haystack as follows:
 
 ```bash
-pip install argilla argilla-haystack
+pip install argilla argilla-haystack["haystack-v1"]
 ```
 
 You will need to an Argilla Server running to monitor the LLM. You can either install the server locally or have it on HuggingFace Spaces. For a complete guide on how to install and initialize the server, you can refer to the [Quickstart Guide](https://docs.argilla.io/en/latest/getting_started/quickstart_installation.html). 
@@ -67,10 +67,8 @@ Now, let us run the agent to obtain a response. The prompt given and the respons
 conversational_agent.run("Tell me three most interesting things about Istanbul, Turkey")
 ```
 
-![Argilla Dataset](docs/argilla-dataset.png)
+![Alt text](docs/images/argilla-haystack-agent.png)
 
 ## Other Use Cases
 
-Please refer to this [notebook](https://github.com/argilla-io/argilla-haystack/blob/feat/1-feature-create-argillacallback-for-haystack/docs/use_argilla_callback_in_haystack.ipynb) for a more detailed example.
-
-
+Please refer to this [notebook](https://github.com/argilla-io/argilla-haystack/blob/feat/1-feature-create-argillacallback-for-haystack/docs/use_argilla_callback_in_haystack-v1.ipynb) for a more detailed example.
