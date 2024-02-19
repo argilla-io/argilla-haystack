@@ -27,7 +27,7 @@ dynamic = ["version"]
 [project.optional-dependencies]
 dev = ["black == 23.10.0", "ruff == 0.1.0", "pre-commit >= 3.5.0"]
 tests = ["pytest >= 7.4.0"]
-haystack-v1 = ["farm-haystack['inference']" >= 1.23.0"]
+haystack-v1 = ["farm-haystack['inference'] >= 1.23.0"]
 haystack-v2 = ["haystack-ai >= 2.0.0a1"]
 
 [project.urls]
