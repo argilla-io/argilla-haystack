@@ -130,6 +130,7 @@ class ArgillaCallbackHandler:
         agent.tm.callback_manager.on_tool_error += self.on_tool_error
 
     def _validate_argilla_version(self):
+        """Check if the installed `argilla` version is compatible with the `ArgillaCallbackHandler`"""
         if parse(self.ARGILLA_VERSION) < parse("1.18.0"):
             raise ImportError(
                 f"The installed `argilla` version is {self.ARGILLA_VERSION} but "
@@ -138,6 +139,7 @@ class ArgillaCallbackHandler:
             )
 
     def _init_argilla(self):
+        """Initialize the connection to Argilla"""
         if self.api_key == DEFAULT_API_KEY:
             warnings.warn(
                 "Using default api_key='argilla.apikey'. Set `api_key` or `ARGILLA_API_KEY` to override.",
@@ -159,6 +161,7 @@ class ArgillaCallbackHandler:
             ) from e
 
     def _prepare_dataset(self):
+        """Prepare the `FeedbackDataset` for the agent"""
         try:
             if self.dataset_name in [ds.name for ds in rg.FeedbackDataset.list()]:
                 self.dataset = rg.FeedbackDataset.from_argilla(
