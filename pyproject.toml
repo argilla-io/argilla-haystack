@@ -20,8 +20,8 @@ classifiers = [
 dependencies = [
     "argilla >= 1.18.0",
     "packaging >= 23.2",
-    "typing-extensions >= 4.3.0"
-    "farm-haystack[/"inference/"] >= 1.23.0"
+    "typing-extensions >= 4.3.0",
+    "farm-haystack[inference] >=1.23.0"
 ]
 dynamic = ["version"]
 
