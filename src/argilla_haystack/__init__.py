@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = "0.0.1-alpha"
+__version__ = "0.0.2"
 
-from argilla_haystack.base import ArgillaCallback
+from argilla_haystack.base import ArgillaCallbackHandler
 
-__all__ = ["ArgillaCallback"]
+__all__ = ["ArgillaCallbackHandler"]
