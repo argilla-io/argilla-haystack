@@ -21,13 +21,13 @@ dependencies = [
     "argilla >= 1.18.0",
     "packaging >= 23.2",
     "typing-extensions >= 4.3.0"
+    "farm-haystack[/"inference/"] >= 1.23.0"
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
 dev = ["black == 23.10.0", "ruff == 0.1.0", "pre-commit >= 3.5.0"]
 tests = ["pytest >= 7.4.0"]
-haystack-v1 = ["farm-haystack['inference'] >= 1.23.0"]
 
 [project.urls]
 Documentation = "https://github.com/argilla-io/argilla-haystack"
